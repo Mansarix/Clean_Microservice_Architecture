@@ -31,46 +31,9 @@ The project demonstrates:
 - Eventual Consistency
 - Choreography-based Saga
 - Outbox / Inbox pattern
-- Polly retry and resiliency
+- Polly retry, circuit breaker and resiliency
 - Docker Compose orchestration
 - GitHub Actions CI
-
-------------------------------------------------------------
-TECHNOLOGIES
-------------------------------------------------------------
-
-- .NET 8
-- ASP.NET Core 8
-- Entity Framework Core
-- PostgreSQL
-- Redis
-- RabbitMQ
-- MediatR
-- Polly
-- Docker / Docker Compose
-
-------------------------------------------------------------
-SOLUTION STRUCTURE
-------------------------------------------------------------
-
-src/
-  Mansari.Store.Catalog/
-    Mansari.Store.Catalog.Api/
-    Mansari.Store.Catalog.Application/
-    Mansari.Store.Catalog.Domain/
-    Mansari.Store.Catalog.Infrastructure/
-
-  Mansari.Store.Ordering/
-    Mansari.Store.Ordering.Api/
-    Mansari.Store.Ordering.Application/
-    Mansari.Store.Ordering.Domain/
-    Mansari.Store.Ordering.Infrastructure/
-
-  Mansari.Store.Contracts/
-    Catalog/
-    Order/
-
-  Mansari.Store.Gateway/
 
 ------------------------------------------------------------
 1) CATALOG SERVICE WITH REDIS CACHE
@@ -130,19 +93,52 @@ src/Mansari.Store.Contracts/
 3) RESILIENCY
 ------------------------------------------------------------
 
-RabbitMQ is configured as durable.
-Messages are published as persistent.
+The system implements multiple resiliency techniques to ensure reliable message processing.
 
-Outbox pattern is implemented in both services.
+Durable Messaging
+RabbitMQ exchanges and queues are declared as durable, ensuring messages survive broker restarts.
 
-OutboxProcessor uses Polly:
+Messages are also published as persistent.
 
-- Retry (exponential backoff)
-- Circuit Breaker
+Relevant implementation:
 
-Failed messages are retried automatically using NextRetryOnUtc.
+src/Mansari.Store.Catalog/Mansari.Store.Catalog.Infrastructure/Messaging/Consumers/OrderCreatedEventConsumer.cs
 
-If a service is down, RabbitMQ keeps durable messages until it is available again.
+The consumer uses manual acknowledgements:
+
+autoAck = false
+BasicAck only after successful processing
+BasicNack(requeue: true) on transient failures
+This ensures that if the Catalog service is down, RabbitMQ keeps the message and delivers it again when the service becomes available.
+
+Inbox Pattern (Idempotency)
+Consumers use an Inbox table to guarantee idempotent message processing.
+
+Example:
+
+src/Mansari.Store.Catalog/Mansari.Store.Catalog.Infrastructure/Persistence/Inbox/InboxMessage.cs
+
+Each incoming event is recorded and processed only once.
+
+Outbox Pattern (Reliable Event Publishing)
+Both services implement the Outbox Pattern to guarantee reliable event publishing.
+
+Events are stored in the database and later published by a background processor.
+
+Implementation:
+
+src/Mansari.Store.Catalog/Mansari.Store.Catalog.Infrastructure/Persistence/Outbox/OutboxProcessor.cs
+
+Retry and Fault Handling with Polly
+The OutboxProcessor uses Polly to handle transient failures when publishing messages.
+
+Implemented strategies:
+
+Retry with exponential backoff
+Circuit Breaker
+Failed messages are retried automatically based on NextRetryOnUtc.
+
+This ensures reliable message delivery even during temporary infrastructure failures.
 
 ------------------------------------------------------------
 4) MEDIATR
