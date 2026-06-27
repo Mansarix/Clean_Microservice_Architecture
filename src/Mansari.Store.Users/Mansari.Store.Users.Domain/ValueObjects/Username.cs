@@ -5,9 +5,13 @@ namespace Mansari.Store.Users.Domain.ValueObjects;
 
 public sealed class Username : ValueObject
 {
-    private static readonly Regex UsernameRegex = new(@"^[a-z][a-z0-9_.]{3,31}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex Pattern = new("^[a-zA-Z0-9._-]{3,50}$", RegexOptions.Compiled);
 
-    public string Value { get; }
+    public const int MaxLength = 50;
+
+    public string Value { get; private set; } = default!;
+
+    private Username() { }
 
     private Username(string value)
     {
@@ -16,24 +20,27 @@ public sealed class Username : ValueObject
 
     public static Username Create(string value)
     {
-        var normalized = Normalize(value);
+        value = TextNormalizer.ToLowerInvariantTrimmed(value);
 
-        if (!UsernameRegex.IsMatch(normalized))
-            throw new DomainException("VALIDATION_ERROR", "Username must start with a letter and contain 4 to 32 valid characters.");
-
-        return new Username(normalized);
-    }
-
-    public static string Normalize(string value)
-    {
         if (string.IsNullOrWhiteSpace(value))
-            throw new DomainException("VALIDATION_ERROR", "Username cannot be empty.");
+            throw new DomainException("Username cannot be empty.");
 
-        return value.Trim().ToLowerInvariant();
+        if (value.Length > MaxLength)
+            throw new DomainException($"Username cannot exceed {MaxLength} characters.");
+
+        if (!Pattern.IsMatch(value))
+            throw new DomainException("Username can contain letters, numbers, dot, underscore and dash only.");
+
+        return new Username(value);
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
     {
-        yield return Value;
+        yield return Value.ToLowerInvariant();
+    }
+
+    public override string ToString()
+    {
+        return Value;
     }
 }

@@ -14,9 +14,10 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<UsersDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("UsersDatabase")));
+            options.UseSqlServer(
+                configuration.GetConnectionString("UsersDatabase")));
 
-        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPersonRepository, PersonRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;

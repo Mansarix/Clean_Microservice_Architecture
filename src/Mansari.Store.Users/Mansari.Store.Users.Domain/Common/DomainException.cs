@@ -1,17 +1,10 @@
 namespace Mansari.Store.Users.Domain.Common;
 
+//فلسفه این بخش: جدا کنیم اکسپشن های سطح دامین قابل تشخیص بشن توی لایه های بیرونی
 public sealed class DomainException : Exception
 {
-    public string ErrorCode { get; }
-
     public DomainException(string message)
-        : this("DOMAIN_ERROR", message)
-    {
-    }
-
-    public DomainException(string errorCode, string message)
         : base(message)
     {
-        ErrorCode = errorCode;
     }
 }

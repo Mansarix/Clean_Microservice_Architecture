@@ -14,18 +14,20 @@ public abstract class ValueObject
 
         var other = (ValueObject)obj;
 
-        return GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
+        return GetEqualityComponents()
+            .SequenceEqual(other.GetEqualityComponents());
     }
 
     public override int GetHashCode()
     {
-        return GetEqualityComponents().Aggregate(1, (current, component) =>
-        {
-            unchecked
+        return GetEqualityComponents()
+            .Aggregate(1, (current, component) =>
             {
-                return current * 23 + (component?.GetHashCode() ?? 0);
-            }
-        });
+                unchecked
+                {
+                    return current * 23 + (component?.GetHashCode() ?? 0);
+                }
+            });
     }
 
     public static bool operator ==(ValueObject? left, ValueObject? right)

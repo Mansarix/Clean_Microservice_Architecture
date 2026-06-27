@@ -10,11 +10,12 @@ public sealed class UsersDbContext : DbContext
     {
     }
 
-    public DbSet<User> Users => Set<User>();
+    public DbSet<Person> People => Set<Person>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UsersDbContext).Assembly);
+
         base.OnModelCreating(modelBuilder);
     }
 }

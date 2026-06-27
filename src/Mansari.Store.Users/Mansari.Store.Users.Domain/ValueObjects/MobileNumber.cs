@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.RegularExpressions;
 using Mansari.Store.Users.Domain.Common;
 
@@ -6,9 +5,11 @@ namespace Mansari.Store.Users.Domain.ValueObjects;
 
 public sealed class MobileNumber : ValueObject
 {
-    private static readonly Regex MobileRegex = new(@"^09\d{9}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex Pattern = new("^09\d{9}$", RegexOptions.Compiled);
 
-    public string Value { get; }
+    public string Value { get; private set; } = default!;
+
+    private MobileNumber() { }
 
     private MobileNumber(string value)
     {
@@ -17,47 +18,24 @@ public sealed class MobileNumber : ValueObject
 
     public static MobileNumber Create(string value)
     {
-        var normalized = Normalize(value);
+        value = TextNormalizer.NormalizeDigits(value);
 
-        if (!MobileRegex.IsMatch(normalized))
-            throw new DomainException("VALIDATION_ERROR", "Mobile number is invalid.");
+        if (string.IsNullOrWhiteSpace(value))
+            throw new DomainException("Mobile number cannot be empty.");
 
-        return new MobileNumber(normalized);
-    }
+        if (!Pattern.IsMatch(value))
+            throw new DomainException("Mobile number must be a valid Iranian mobile number.");
 
-    public static string Normalize(string value)
-    {
-        var digitsOnly = NormalizeDigits(value);
-
-        if (digitsOnly.StartsWith("0098", StringComparison.Ordinal) && digitsOnly.Length == 14)
-            digitsOnly = "0" + digitsOnly[4..];
-        else if (digitsOnly.StartsWith("98", StringComparison.Ordinal) && digitsOnly.Length == 12)
-            digitsOnly = "0" + digitsOnly[2..];
-        else if (digitsOnly.StartsWith("98", StringComparison.Ordinal) && digitsOnly.Length == 13)
-            digitsOnly = "0" + digitsOnly[3..];
-
-        return digitsOnly;
-    }
-
-    private static string NormalizeDigits(string value)
-    {
-        var builder = new StringBuilder(value.Length);
-
-        foreach (var ch in value)
-        {
-            if (char.IsDigit(ch))
-                builder.Append(ch);
-            else if (ch is >= '۰' and <= '۹')
-                builder.Append((char)('0' + (ch - '۰')));
-            else if (ch is >= '٠' and <= '٩')
-                builder.Append((char)('0' + (ch - '٠')));
-        }
-
-        return builder.ToString();
+        return new MobileNumber(value);
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
     {
         yield return Value;
+    }
+
+    public override string ToString()
+    {
+        return Value;
     }
 }
