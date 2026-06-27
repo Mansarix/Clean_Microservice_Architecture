@@ -10,6 +10,12 @@
     <Folder Include="Extensions\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\..\sisha\MyOpenSourceProjects\mansari-store-BASKET-microservice\Mansari.Store.Basket\src\Mansari.Store.Basket.API\Mansari.Store.Basket.API.csproj" />
+    <ProjectReference Include="..\Mansari.Store.Catalog\Mansari.Store.Catalog.Api\Mansari.Store.Catalog.Api.csproj" />
+    <ProjectReference Include="..\Mansari.Store.Ordering\Mansari.Store.Ordering.Api\Mansari.Store.Ordering.Api.csproj" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<Protobuf Include="..\Mansari.Store.Contracts\Protos\catalog.proto" GrpcServices="Client" />
 	    <Protobuf Include="..\Mansari.Store.Contracts\Protos\ordering.proto" GrpcServices="Client" />
