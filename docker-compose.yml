@@ -16,10 +16,7 @@ services:
       - ConnectionStrings__CatalogDatabase=Server=catalog-db;Database=CatalogDb;User Id=sa;Password=YourStrong@Pass123;TrustServerCertificate=True
       - ConnectionStrings__Redis=redis:6379
 
-      - RabbitMq__HostName=rabbitmq
-      - RabbitMq__Port=5672
-      - RabbitMq__Username=guest
-      - RabbitMq__Password=guest
+      - ConnectionStrings__RabbitMQ=amqp://guest:guest@rabbitmq:5672
 
     depends_on:
       catalog-db:
@@ -59,6 +56,38 @@ services:
     networks:
       - mansari-network
 
+  basket-api:
+    container_name: mansari-basket-api
+    build:
+      context: .
+      dockerfile: src/Mansari.Store.Basket/Mansari.Store.Basket.API/Dockerfile
+
+    ports:
+      - "5003:8080"
+
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+
+      - ConnectionStrings__SqlServer=Server=basket-db;Database=BasketDb;User Id=sa;Password=YourStrong@Pass123;TrustServerCertificate=True
+      - ConnectionStrings__Redis=redis:6379
+
+      - RabbitMqOptions__Host=rabbitmq
+      - RabbitMqOptions__UserName=guest
+      - RabbitMqOptions__Password=guest
+
+    depends_on:
+      basket-db:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+    networks:
+      - mansari-network
+
+
   gateway:
     container_name: mansari-gateway
     build:
@@ -72,6 +101,8 @@ services:
     depends_on:
       - catalog-api
       - ordering-api
+      - basket-api
+
     networks:
       - mansari-network
 
@@ -112,6 +143,28 @@ services:
 
     networks:
       - mansari-network
+
+
+  basket-db:
+    container_name: mansari-basket-db
+
+    image: mcr.microsoft.com/mssql/server:2022-latest
+
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong@Pass123"
+
+    ports:
+      - "1435:1433"
+
+    restart: unless-stopped
+
+    volumes:
+      - basket-data:/var/opt/mssql
+
+    networks:
+      - mansari-network
+
 
   redis:
     container_name: mansari-redis
@@ -156,5 +209,6 @@ networks:
 volumes:
   catalog-data:
   ordering-data:
+  basket-data:
   redis-data:
   rabbitmq-data:
