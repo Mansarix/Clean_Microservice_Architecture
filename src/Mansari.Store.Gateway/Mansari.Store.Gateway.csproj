@@ -7,22 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Extensions\" />
-    <Folder Include="DependencyInjection\" />
-    <Folder Include="Configuration\" />
     <Folder Include="GrpcClients\Basket\" />
     <Folder Include="GrpcClients\Catalog\" />
     <Folder Include="GrpcClients\User\" />
     <Folder Include="GrpcClients\Ordering\" />
-    <Folder Include="Models\" />
+    <Folder Include="Models\Common\" />
+    <Folder Include="Models\Catalog\" />
+    <Folder Include="Models\User\" />
+    <Folder Include="Models\Ordering\" />
     <Folder Include="Protos\" />
-    <Folder Include="Services\Aggregation\" />
-    <Folder Include="Services\Abstractions\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Mansari.Store.Catalog\Mansari.Store.Catalog.Api\Mansari.Store.Catalog.Api.csproj" />
-    <ProjectReference Include="..\Mansari.Store.Ordering\Mansari.Store.Ordering.Api\Mansari.Store.Ordering.Api.csproj" />
   </ItemGroup>
 
 	<ItemGroup>
